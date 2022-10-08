@@ -1,1 +1,7 @@
 websockets
+os
+asyncio
+threading
+math
+signal
+os
