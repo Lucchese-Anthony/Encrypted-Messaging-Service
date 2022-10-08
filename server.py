@@ -3,7 +3,6 @@ import database
 from objects import message
 from objects import user
 import threading
-from websocket import create_connection
 
 import asyncio
 import signal
