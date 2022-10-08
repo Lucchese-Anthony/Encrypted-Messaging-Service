@@ -1,11 +1,12 @@
 import math
-import messageObj.message
+from objects import message
+from objects import user
 
-def insertUser(username:str, password:base64):
+def insertUser(username:str, password:str):
     # TODO insert new user
     # TODO create a public key for the user and send it to their session
     return
-def queryUser(username:str, password:base64):
+def queryUser(username:str, password:str):
     # TODO check if username and password is correct
     return
 def storeMessage(message:message):

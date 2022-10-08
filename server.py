@@ -1,22 +1,54 @@
 import math
 import database
-import messageObj.message
+from objects import message
+from objects import user
 import threading
-import socket
+from websocket import create_connection
 
-def main():
+import asyncio
+import signal
+import os
+
+import websockets
+
+async def echo(websocket):
+    async for message in websocket:
+        await websocket.send(message)
+
+
+async def main():
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+
+    async with websockets.serve(
+        echo,
+        host="",
+        port=int(os.environ["PORT"]),
+    ):
+        await stop
+
+
+def main1():
     # TODO initialize server
     # TODO ask for username password
         # TODO query database for correct username and password
     # TOOO send back the user's public key and keep it in the code
     # TODO accept all incoming messages from users
-    host = "" # TODO
-    port = "" # TODO
-
-    server_socket = socket.socket() 
-    server_socket.bind((host, port))
+    '''
+    ws = create_connection("ws://myapp.herokuapp.com")
+    print("Sending 'Hello, World'...")
+    ws.send("Hello, World")
+    print("Sent")
+    print("Receiving...")
+    result = ws.recv()
+    print("Received '%s'" % result)
+    ws.close()
+    '''
+    ws = create_connection("ws://myapp.herokuapp.com")
     allConnectedUsers = list()
-    incomingSocketConnection
+    incomingSocketConnection = threading.Thread(target=newSocketConnection)
     incomingUserThread = threading.Thread(target=bufferIncomingUsers, args=(allConnectedUsers,))
     incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers,))
     # TODO place the user into a queue
@@ -36,22 +68,24 @@ def bufferIncomingUsers(allConnectedUsers:list):
     # TODO pop the first user each time the new incoming user is ready
     while(True):
         if userExists():
-            continue
+            verifyUser()
         else:
             createNewUser()
     return
 
-def createNewUser():
-    # TODO create new user with username and base64 pass
+def createNewUser(user:user):
+    # TODO create new user with username and str pass
     # TODO insert into DB new username and pass
-    
+
+    database.insertUser(username, password)
     return
 
 def userExists():
     # TODO connect socket to user
     database.queryUsername(username)
     return
-
+def verifyUser(mess):
+    database.queryUser(username, password)
 def sendMessage(message:message):
     # TODO send message from fromUsername to toUsername 
     return
@@ -81,4 +115,4 @@ def incomingMessages(allConnectedUsers:list):
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
