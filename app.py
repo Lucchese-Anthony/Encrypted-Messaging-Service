@@ -14,7 +14,7 @@ async def echo(websocket):
         await websocket.send(message)
 
 
-async def main():
+async def main1():
     # Set the stop condition when receiving SIGTERM.
     loop = asyncio.get_running_loop()
     stop = loop.create_future()
@@ -28,13 +28,13 @@ async def main():
         await stop
 
 
-def main1():
+def main():
     # TODO initialize server
     # TODO ask for username password
         # TODO query database for correct username and password
     # TOOO send back the user's public key and keep it in the code
     # TODO accept all incoming messages from users
-    '''
+    
     ws = create_connection("ws://myapp.herokuapp.com")
     print("Sending 'Hello, World'...")
     ws.send("Hello, World")
@@ -44,13 +44,14 @@ def main1():
     print("Received '%s'" % result)
     ws.close()
     '''
-    ws = create_connection("ws://myapp.herokuapp.com")
+    ws = create_connection("ws://rsa-encryption-server.herokuapp.com")
     allConnectedUsers = list()
     incomingSocketConnection = threading.Thread(target=newSocketConnection)
     incomingUserThread = threading.Thread(target=bufferIncomingUsers, args=(allConnectedUsers,))
     incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers,))
     # TODO place the user into a queue
     return
+    '''
 
 def newSocketConnection(allConnectedUsers:list, server_socket:socket):
     # TODO figure out sockets
