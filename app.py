@@ -7,7 +7,6 @@ import threading
 import asyncio
 import signal
 import os
-
 import websockets
 
 async def echo(websocket):
