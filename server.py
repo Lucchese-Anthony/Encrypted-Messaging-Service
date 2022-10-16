@@ -4,30 +4,9 @@ from objects import message
 from objects import user
 import threading
 import socket
-
 import asyncio
 import signal
 import os
-import websockets
-
-"""async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
-
-
-async def main1():
-    # Set the stop condition when receiving SIGTERM.
-    loop = asyncio.get_running_loop()
-    stop = loop.create_future()
-    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
-
-    async with websockets.serve(
-        echo,
-        host="",
-        port=int(os.environ["PORT"]),
-    ):
-        await stop
-"""
 
 def main():
     # TODO initialize server
@@ -35,31 +14,37 @@ def main():
         # TODO query database for correct username and password
     # TOOO send back the user's public key and keep it in the code
     # TODO accept all incoming messages from users
-    
-    ws = create_connection("ws://rsa-encryption-server.herokuapp.com")
-    print("Sending 'Hello, World'...")
-    ws.send("Hello, World")
-    print("Sent")
-    print("Receiving...")
-    result = ws.recv()
-    print("Received '%s'" % result)
-    ws.close()
-    '''
-    ws = create_connection("ws://rsa-encryption-server.herokuapp.com")
+
+    # get the hostname
+    host = socket.gethostname()
+    port = 9001  # initiate port no above 1024
+    # look closely. The bind() function takes tuple as argument
+
+
+    server = socket.socket()
+    server.bind((host, port))
     allConnectedUsers = list()
-    incomingSocketConnection = threading.Thread(target=newSocketConnection)
+    incomingSocketConnection = threading.Thread(target=newSocketConnection, args=(allConnectedUsers, server))
+    print("Allowing connections!")
     incomingUserThread = threading.Thread(target=bufferIncomingUsers, args=(allConnectedUsers,))
     incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers,))
+    incomingMessagesThread.start()
+    incomingUserThread.start()
+    incomingSocketConnection.start()
     # TODO place the user into a queue
+    print(server)
+    while True:
+        None
     return
-    '''
 
-def newSocketConnection(allConnectedUsers:list, server_socket:socket):
+def newSocketConnection(allConnectedUsers:list, server:socket):
     # TODO figure out sockets
     while(True):
-        server_socket.listen(2)
-        connection, address = server_socket.accept()
+        print("hello@")
+        server.listen(2)
+        connection, address = server.accept()
         print("Connection from: " + str(address))
+        connection.sendall(b'Hello, world')
         allConnectedUsers.append(connection)
         # TODO attempt at basic socketing
 
@@ -77,7 +62,7 @@ def createNewUser(user:user):
     # TODO create new user with username and str pass
     # TODO insert into DB new username and pass
 
-    database.insertUser(username, password)
+    database.insertUser(user.getUsername(), user.getPassword())
     return
 
 def userExists():
@@ -115,4 +100,4 @@ def incomingMessages(allConnectedUsers:list):
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

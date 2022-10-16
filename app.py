@@ -1,30 +1,12 @@
-#!/usr/bin/env python
+import socket           
 
-import asyncio
-import signal
-import os
-
-import websockets
-
-
-async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
-
-
-async def main():
-    # Set the stop condition when receiving SIGTERM.
-    loop = asyncio.get_running_loop()
-    stop = loop.create_future()
-    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
-
-    async with websockets.serve(
-        echo,
-        host="",
-        port=int(os.environ["PORT"]),
-    ):
-        await stop
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# SETUP SOCKET SERVER
+s = socket.socket()         # Create a socket object
+port = 8080                 # Reserve a port for your service.
+local_hostname = socket.gethostname()
+ip = socket.gethostbyname("appname.herokuapp.com")
+print(ip)
+#ip = socket.gethostbyname(local_hostname)
+#print(ip)
+s.bind((ip, port))        # Bind to the port
+print ('starting up on %s port %s' % (ip, port))
