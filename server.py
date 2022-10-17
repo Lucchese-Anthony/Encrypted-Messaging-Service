@@ -41,7 +41,6 @@ def newSocketConnection(allConnectedUsers:list, server:socket):
         server.listen(2)
         connection, address = server.accept()
         print("Connection from: " + str(address))
-        allConnectedUsers.append(connection)
         connection.sendall(b'welcome!')
         incomingUser(connection)
         # TODO attempt at basic socketing
@@ -49,14 +48,21 @@ def newSocketConnection(allConnectedUsers:list, server:socket):
 def incomingUser(connection):
     # TODO insert each newcoming user into the list
     # TODO pop the first user each time the new incoming user is ready
-    userInfo = connection.recv(1024)
-    print(userInfo)
+    username = repr(connection.recv(1024))
+    password = repr(connection.recv(1024))
+    print(username)
+    print(password)
+    userInfo = user(username, password)
     incomingUser = user("username", "password")
     while(True):
         if userExists(user):
-            verifyUser(user)
+            if verifyUser(user):
+                print("User Exists!")
+                break
         else:
             createNewUser(user)
+    allConnectedUsers.append(connection)
+
     return
 
 def createNewUser(user:user):
@@ -72,8 +78,7 @@ def userExists(user:user):
     #return True if database.queryUsername(user.getUsername()).getUsername() == user.getUsername() else False
 
 def verifyUser(user:user):
-    return 
-    # return user == database.queryUser(user.getUsername())
+    return user == user("username", "password")
 
 def sendMessage(message:message):
     # TODO send message from fromUsername to toUsername 

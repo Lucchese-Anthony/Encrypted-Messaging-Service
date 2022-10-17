@@ -3,6 +3,7 @@ import database
 import threading
 import socket
 import os
+from objects import message, user
 
 def main():
     host = ""
@@ -11,9 +12,15 @@ def main():
     port = 1022
 
     client = socket.create_connection(address=(host, port))
-    client.send(b'User Information')
-    response = client.recv(2048)
-    print('Received', repr(response))
+    print("Connected to server!")
+    username = input("Enter a Username: ")
+    client.send(bytes(username, 'utf-8'))
+    password = input("Enter a Password: ")
+    client.send(bytes(password, 'utf-8'))
+
+    print("Sent User Information!")
+    data = client.recv(1024)
+    print("Received message: " + repr(data))
     return
 
 def incomingMessageThread():
