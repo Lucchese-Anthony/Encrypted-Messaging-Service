@@ -9,7 +9,7 @@ def main():
     host = ""
     with open('ip.txt', 'r') as file:
         host = file.read().rstrip()
-    port = 1022
+    port = 30000
 
     client = socket.create_connection(address=(host, port))
     print("Connected to server!")
