@@ -1,4 +1,5 @@
 import math
+import struct
 import database
 from objects import message
 from objects import user
@@ -21,7 +22,7 @@ letterConversions:dict = {
 "Z":"26"}
 
 def main(n, phiOfN, e, d):
-        # TODO query text file to see if user is new
+    # TODO query text file to see if user is new
     # TOOO send back the user's public key and keep it in the code
     # TODO accept all incoming messages from users
 
@@ -32,9 +33,9 @@ def main(n, phiOfN, e, d):
     server = socket.socket()
     server.bind((host, port))
     logging.info("Allowing connections!")
-
-    newSocketConnectionThread = threading.Thread(target=newSocketConnection, args=(allConnectedUsers,server))
-    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers,server))
+    serverAccount = (n, e)
+    newSocketConnectionThread = threading.Thread(target=newSocketConnection, args=(allConnectedUsers, server, serverAccount))
+    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers, server, serverAccount))
     closeProgramThread = threading.Thread(target=closeServer, args=(server,))
 
     incomingMessagesThread.start()
@@ -58,77 +59,62 @@ def closeServer(server):
     sys.exit()
 
 
-def newSocketConnection(allConnectedUsers:list, server:socket):
+def newSocketConnection(allConnectedUsers:list, server:socket, serverAccount:tuple):
     while(True):
         server.listen(2)
         connection, address = server.accept()
         print("Connection from: " + str(address))
         connection.sendall(b'welcome!')
-        incomingUser(allConnectedUsers, connection)
+        incomingUser(allConnectedUsers, connection, serverAccount)
 
-def incomingUser(allConnectedUsers:list, connection:socket):
+def incomingUser(allConnectedUsers:list, connection:socket, serverAccount:tuple):
     # TODO insert each newcoming user into the list
     # TODO pop the first user each time the new incoming user is ready
-    newUser:user = pickle.loads(connection.recv(10000))
+    sizeOfUser = connection.recv(2048)
+    newUser:user = pickle.loads(connection.recv(int.from_bytes(sizeOfUser, byteorder='big')))
     logging.info("User has logged in with: " + newUser.getUsername())
     # deserialize the user
-    if userExists(newUser):
-        if verifyUser(newUser):
-            print("User Exists!")
+    if isNewUser(newUser, allConnectedUsers):
+        createNewUser(newUser, allConnectedUsers, connection)
+        connection.send(bytes(str(serverAccount[0]), 'utf-8'))
+        connection.send(bytes(str(serverAccount[1]), 'utf-8'))
     else:
-        createNewUser(user)
-    allConnectedUsers.append(connection)
-
+        logging.info("User is already in the list of users!")
+        connection.send(b'User is already in the list of users!')
     return
 
-def createNewUser(user:user):
-    # TODO create new user with username and str pass
-    # TODO insert into DB new username and pass
+def createNewUser(user:user, allConnectedUsers:list, connection:socket):
+    allConnectedUsers.append((connection, user))
+    logging.info("User has been added to the list of users!")
+    connection.send(b'Successfully added to the server!')
 
-    database.insertUser(user.getUsername(), user.getPassword())
-    return
-
-def userExists(user:user):
-    # TODO connect socket to user
+def isNewUser(user:user, allConnectedUsers:list) -> bool:
+    for users in allConnectedUsers:
+        if user.getUsername() == users.getUsername():
+            return False
     return True
-    #return True if database.queryUsername(user.getUsername()).getUsername() == user.getUsername() else False
-
-def verifyUser(userInfo:user):
-    return userInfo == user("username", "password")
-
-def sendMessage(message:message):
-    # TODO send message from fromUsername to toUsername 
-    return
-
-def validMessage(message:message):
-    # TODO check validity of message being sent
-    return True
-    # dbResult = database.queryUsername(message.getToUser)
-    # return True if dbResult != None else False
 
 def sendErrorMessageBack(message:message, errorMessage:str):
     # TODO send error message back to user 
     message.setMesage(errorMessage)
     sendErrorMessageBack(message)
 
-
-def incomingMessages(allConnectedUsers:list, server:socket):
+def incomingMessages(allConnectedUsers:list, server:socket, serverAccount:user):
     messageQueue = list()
     while(True):
         for connection in allConnectedUsers:
             try:
-                message = connection.recv(1024)
-                messageQueue.append(message)
-                message = parseMessage(recievedMessage)
-                # TODO accept in tuple of (fromUsername, toUsername, message)
-                # check if message can be sent to the given user
-                if validMessage(message):
-                    sendMessage(fromUsername, toUsername, message)
-                    database.storeMessage(newMessage)
-                else:
-                    sendErrorMessageBack(newMessage.getFromUser, "Unable to send message!")
+                sizeOfMessage = connection.recv(2048)
+                if sizeOfMessage:
+                    message:message = connection.recv(int(sizeOfMessage))
+                    messageQueue.append((connection, message))
+                    logging.info("Message has been received!")
+                    connection[0].send(b'Message has been received!')
+                    sendMassMessage(messageQueue, allConnectedUsers)
             except:
-                None
+                continue
+        time.sleep(1)
+
 
 def findD(e:int, phiOfN:int) -> int:
     return findExponentModN(e, phiOfN-1)
@@ -148,8 +134,22 @@ def decryptMessage(message:str, privateKey:int) -> str:
 def encryptMessage(message:str, serverPublicKey:int) -> str:
     return findExponentModN(convertStringToNumber(message), serverPublicKey)
 
+def convertNumberToString(number:int) -> str:
+    string = ""
+    number = str(number)
+    if len(number) % 2 != 0:
+        number = "0" + number
+    for i in range(0, len(number), 2):
+        string += list(letterConversions.keys())[list(letterConversions.values()).index(number[i:i+2])]
+    return string
+
+def convertStringToNumber(string:str) -> int:
+    number = ""
+    for i in range(len(string)):
+        number += letterConversions[string[i]]
+    return int(number)
+
 def getPhiOfN(p, q):
-    n = p*q
     return (p-1)*(q-1)
 
 def generateE(p, q):
@@ -171,13 +171,8 @@ def EuclideanAlgorithm(top:int, bottom:int) -> int:
         bottom = rem
     return sequence[-2]
 
-
-def parseMessage(message:str):
-    # TODO parse message into a message object
-    return message
-
 if __name__ == "__main__":
-    logging.basicConfig(format='[SERVER]%(asctime)s - %(message)s',level=logging.INFO)
+    logging.basicConfig(format='[SERVER] %(asctime)s - %(message)s',level=logging.INFO)
     p = 0
     q = 0
     with open('p.txt', 'r') as file:
@@ -186,6 +181,13 @@ if __name__ == "__main__":
         q = int(file.read().rstrip())
     n = p*q
     phiOfN = getPhiOfN(p, q)
+    timeToComplete = time.time()
     e = generateE(p, q)
-    d = findD(e, phiOfN)
+    timeToComplete = time.time() - timeToComplete
+    logging.info("time to complete e: " + str(timeToComplete))
+    
+    timeToComplete = time.time()
+    d = findD(e, getPhiOfN(p, q))
+    timeToComplete = time.time() - timeToComplete
+    logging.info("time to complete d: " + str(timeToComplete))
     main(p*q,phiOfN, e, d)
