@@ -1,6 +1,3 @@
-import math
-import struct
-import database
 from objects import message
 from objects import user
 import threading
@@ -8,15 +5,13 @@ import socket
 import os
 import time
 import sys
-import signal
 import logging
 import pickle
 import random
+import math
+from equations import *
 
 def main(n, phiOfN, e, d):
-    # TODO query text file to see if user is new
-    # TOOO send back the user's public key and keep it in the code
-    # TODO accept all incoming messages from users
 
     host = "freebsd3.cs.scranton.edu"
     port = 30000
@@ -26,8 +21,9 @@ def main(n, phiOfN, e, d):
     server.bind((host, port))
     logging.info("Allowing connections!")
     serverAccount = (n, e)
+
     newSocketConnectionThread = threading.Thread(target=newSocketConnection, args=(allConnectedUsers, server, serverAccount))
-    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers, server, serverAccount))
+    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(allConnectedUsers, server, d))
     closeProgramThread = threading.Thread(target=closeServer, args=(server,))
 
     incomingMessagesThread.start()
@@ -82,7 +78,7 @@ def createNewUser(user:user, allConnectedUsers:list, connection:socket):
 
 def isNewUser(user:user, allConnectedUsers:list) -> bool:
     for users in allConnectedUsers:
-        if user.getUsername() == users.getUsername():
+        if user.getUsername() == users[1].getUsername():
             return False
     return True
 
@@ -91,30 +87,30 @@ def sendErrorMessageBack(message:message, errorMessage:str):
     message.setMesage(errorMessage)
     sendErrorMessageBack(message)
 
-def incomingMessages(allConnectedUsers:list, server:socket, serverAccount:user):
+def incomingMessages(allConnectedUsers:list, serverAccount:tuple, privateKey:int):
     messageQueue = list()
     while(True):
         for connection in allConnectedUsers:
             try:
-                sizeOfMessage = connection.recv(2048)
+                sizeOfMessage = connection[0].recv(2048)
                 if sizeOfMessage:
-                    message:message = connection.recv(int(sizeOfMessage))
-                    messageQueue.append((connection, message))
+                    message = connection[0].recv(int(sizeOfMessage))
+                    messageQueue.append((connection[0], decryptMessage(message, privateKey)))
                     logging.info("Message has been received!")
                     connection[0].send(b'Message has been received!')
-                    sendMassMessage(messageQueue, allConnectedUsers)
+                    sendMassMessage(messageQueue, allConnectedUsers, serverAccount)
             except:
                 continue
         time.sleep(1)
 
 def sendMassMessage(messageQueue:list, allConnectedUsers:list):
     while(len(messageQueue) > 0):
-        message:message = messageQueue.pop(0)
+        message = messageQueue.pop(0)
         for connection in allConnectedUsers:
-            if connection[1].getUsername() == message[1].getReceiver():
-                connection[0].send(bytes(str(message[1].getMessage()), 'utf-8'))
+            if connection[0] != message[0]:
+                connection.send(bytes(encryptMessage(message[1], user.getE())), 'utf-8')
                 logging.info("Message has been sent to the receiver!")
-                connection[0].send(b'Message has been sent to the receiver!')
+                connection.send(b'Message has been sent to the receiver!')
                 break
 
 if __name__ == "__main__":
@@ -133,7 +129,7 @@ if __name__ == "__main__":
     logging.info("time to complete e: " + str(timeToComplete))
     
     timeToComplete = time.time()
-    d = findD(e, getPhiOfN(p, q))
+    d = findD(e, getPhiOfN(p, q), n)
     timeToComplete = time.time() - timeToComplete
     logging.info("time to complete d: " + str(timeToComplete))
     main(p*q,phiOfN, e, d)

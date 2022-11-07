@@ -1,13 +1,10 @@
-import math
 import struct
-import database
 import threading
 import socket
 import os
-from objects import message, user
+from objects import user
 import logging
 import sys
-import random
 import pickle
 import time
 from equations import *
@@ -26,7 +23,7 @@ def main(n, phiOfN, e, d):
         sys.exit(1)
 
     serverAccount:tuple = sendUserInformation(client, n, e)
-
+    time.sleep(2)
     incomingMessagesThread = threading.Thread(target=incomingMessages, args=(client,n,e,d))
     sendMessagesThread = threading.Thread(target=sendMessages, args=(client,n,e,d, serverAccount))
 
@@ -35,7 +32,7 @@ def main(n, phiOfN, e, d):
 
     return
 
-def sendMessages(client:socket, server:tuple):
+def sendMessages(client:socket, n:int, e:int, d:int, server:tuple):
     while(True):
         message = input("")
         encryptedMessage:int = encryptMessage(message, server[0], server[1])
@@ -64,12 +61,14 @@ def sendUserInformation(client:socket, n, e) -> tuple:
     logging.info("Received server info: " + serverKey + " | " + serverExponent)
     return (serverKey, serverExponent)
 
-def incomingMessages(client:socket):
+def incomingMessages(client:socket,n:int,e:int,d:int):
     while(True):
-        encryptedMessage = int(client.recv(2048))
-        print("Encrypted Message: " + encryptedMessage)
-        decryptedMessage = decryptMessage(encryptedMessage, d, n)
-        print("Decrypted Message: " + decryptedMessage)
+        # somehow make it so the recv dont interfere with the send
+        data = client.recv(2048)
+        if data:
+            print("Encrypted message: " + str(data))
+            decryptedMessage = decryptMessage(int.from_bytes(data, byteorder='big'), n, d)
+            print("Decrypted Message: " + decryptedMessage)
 
 def closeServer(server):
     endProgram = ''
