@@ -23,7 +23,7 @@ def getPhiOfN(p, q):
 
 def generateE(p, q):
     while(True):
-        e:int = random.randint(11,100)
+        e:int = random.randint(10**(100), 10**(101))
         if EuclideanAlgorithm(getPhiOfN(p, q), e) == 1:
             return e
 
@@ -42,14 +42,11 @@ def EuclideanAlgorithm(top:int, bottom:int) -> int:
 
 def findExponentModN(number:int, exponent:int, n:int) -> int:
     returnNum:int = 0
-    print(exponent)
-    print(bin(exponent))
-    print(bin(exponent)[2:])
     result = bin(exponent)[2:]
     for i in range(len(result)):
         number = (number * number) % n
         if result[i] == "1":
-            returnNum = number * number % n
+            returnNum = (number * number) % n
     return returnNum % n
 
 def findD(e:int, phiOfN:int, n:int) -> int:

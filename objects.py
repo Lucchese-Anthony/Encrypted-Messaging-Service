@@ -14,14 +14,11 @@ class message:
     def setMesage(newMessage:str):
         self._message = newMessage
 class user:
-    def __init__(self, username:str, password:str, n, e):
-        self._username = username
-        self._password = password
+    def __init__(self, n:str, e:str):
+
         self.n = n
         self.e = e
-    def getUsername(self):
-        return self._username
-    def getN(self):
+    def getN(self) -> str:
         return self.n
-    def getE(self):
+    def getE(self) -> str:
         return self.e

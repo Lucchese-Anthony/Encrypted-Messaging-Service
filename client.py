@@ -40,45 +40,32 @@ def sendMessages(client:socket, n:int, e:int, d:int, server:tuple):
 
 def sendUserInformation(client:socket, n, e) -> tuple:
     logging.info("Connected to server!")
-    username = input("Enter a Username: ")
-    password = input("Enter a Password: ")
-    newUser = user(username, password, n, e)
+    newUser = user(n, e)
+    # send the user object
+    sizeOfE = len(str(e))
+    client.send(bytes(str(sizeOfE), 'utf-8'))
+    client.send(bytes(str(e / sys.maxsize), 'utf-8'))
+    sizeOfN = len(str(n / sys.maxsize))
+    client.send(bytes(str(sizeOfN), 'utf-8'))
+    client.send(bytes(str(n), 'utf-8'))
+    # recieve the server's public key
+    sizeOfUserE = client.recv(4086)
+    print(sizeOfUserE.decode())
+    userE = int.from_bytes(client.recv(sizeOfUserE), byteorder='big') * sys.maxsize
+    sizeOfUserN = client.recv(4086)
+    logging.info("E: " + str(userE.decode()))
+    userN = int.from_bytes(client.recv(sizeOfUserN), byteorder='big') * sys.maxsize
+    logging.info("User information has been recieved!")
+    logging.info("User's public key is: " + str(userE))
 
-    sizeOfSerializedUser = len(pickle.dumps(newUser))
-    client.send(struct.pack("B", sizeOfSerializedUser))
-    client.send(pickle.dumps(newUser))
-    data = client.recv(1024)
+    return (userN, userE)
 
-    if data.decode("utf-8") == "User is already in the list of users!":
-        logging.info("User is already in the list of users!")
-        sys.exit(1)
-    logging.info("User has been verified!")
-
-    serverKey = client.recv(2048)
-    serverExponent = client.recv(2048)
-    serverKey = serverKey.decode("utf-8")
-    serverExponent = serverExponent.decode("utf-8")
-    logging.info("Received server info: " + serverKey + " | " + serverExponent)
-    return (serverKey, serverExponent)
-
-def incomingMessages(client:socket,n:int,e:int,d:int):
+def incomingMessages(client:socket,n:int,d:int):
     while(True):
-        # somehow make it so the recv dont interfere with the send
         data = client.recv(2048)
-        if data:
-            print("Encrypted message: " + str(data))
-            decryptedMessage = decryptMessage(int.from_bytes(data, byteorder='big'), n, d)
-            print("Decrypted Message: " + decryptedMessage)
-
-def closeServer(server):
-    endProgram = ''
-    
-    while endProgram != "e":
-        endProgram = input("")
-    print('closing server')
-    server.close()
-    print('ending program')
-    sys.exit()
+        print("Encrypted message: " + str(data))
+        decryptedMessage = decryptMessage(int.from_bytes(data, byteorder='big'), n, d)
+        print("Decrypted Message: " + decryptedMessage)
 
 if __name__ == "__main__":
     logging.basicConfig(format='[CLIENT] %(asctime)s - %(message)s',level=logging.INFO)
