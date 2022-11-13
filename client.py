@@ -77,9 +77,9 @@ if __name__ == "__main__":
     logging.basicConfig(format='[CLIENT] %(asctime)s - %(message)s',level=logging.INFO)
     p = 0
     q = 0
-    with open('p.txt', 'r') as file:
+    with open('pClient.txt', 'r') as file:
         p = int(file.read().rstrip())
-    with open('q.txt', 'r') as file:
+    with open('qClient.txt', 'r') as file:
         q = int(file.read().rstrip())
     n = p*q
     phiOfN = getPhiOfN(p, q)

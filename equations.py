@@ -1,4 +1,6 @@
+import math
 import random
+import sys
 
 letterConversions:dict = {
 "A":"01","B":"02","C":"03","D":"04","E":"05",
@@ -66,6 +68,9 @@ def convertStringToNumber(string:str) -> int:
     for i in range(len(string)):
         number += letterConversions[string[i]]
     return int(number)
+
+def shrinkIntToSendOverSocket(number:int):
+    return (str(math.floor(number / sys.maxsize)), str(number % sys.maxsize))
 
 def decryptMessage(message:str, privateKey:int, n:int) -> str:
     return convertNumberToString(findExponentModN(int(message), privateKey), n)
