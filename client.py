@@ -10,6 +10,7 @@ import pickle
 import time
 from equations import *
 
+maxsize = 2147483647
 
 def main(n, phiOfN, e, d):
     host:str = ""
@@ -22,10 +23,10 @@ def main(n, phiOfN, e, d):
     except:
         print("Server connection refused")
         sys.exit(1)
-
+    time.sleep(.5)
     serverAccount:tuple = sendUserInformation(client, n, e)
     time.sleep(2)
-    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(client,n,e,d))
+    incomingMessagesThread = threading.Thread(target=incomingMessages, args=(client,n,d))
     sendMessagesThread = threading.Thread(target=sendMessages, args=(client,n,e,d, serverAccount))
 
     incomingMessagesThread.start()
@@ -35,36 +36,70 @@ def main(n, phiOfN, e, d):
 
 def sendMessages(client:socket, n:int, e:int, d:int, server:tuple):
     while(True):
-        message = input("")
-        encryptedMessage:int = encryptMessage(message, server[0], server[1])
-        client.send(struct.pack("B", encryptedMessage))
+        message = input("Enter a message:")
+        encryptedMessage:int = encryptMessage(message.upper(), server[1], server[0])
+        logging.info("Message: " + message)
+        logging.info("Encrypted Message: "+ str(encryptedMessage))
+        div = math.floor(encryptedMessage / maxsize)
+        print(div)
+        print(str(len(str(div))))
+        mod = encryptedMessage % maxsize
+        print(mod)
+        print(maxsize > div)
+        client.send(bytes(str(len(str(div))), 'utf-8'))
+        time.sleep(.3)
+        client.send(bytes(str(div),'utf-8'))
+        time.sleep(.3)
+        client.send(bytes(str(len(str(mod))), 'utf-8'))
+        time.sleep(.3)
+        client.send(bytes(str(mod),'utf-8'))
 
-def sendUserInformation(client:socket, n, e) -> tuple:
+def sendUserInformation(connection:socket, n, e) -> tuple:
     logging.info("Connected to server!")
     newUser = user(n, e)
     # send the user object
-    sizeOfE = len(str(e))
-    client.send(bytes(str(sizeOfE), 'utf-8'))
-    client.send(bytes(str(e), 'utf-8'))
-    sizeOfN = len(str(n))
-    client.send(bytes(str(sizeOfN), 'utf-8'))
-    client.send(bytes(str(n), 'utf-8'))
+    shrinkE = shrinkIntToSendOverSocket(e)
+    shrinkN = shrinkIntToSendOverSocket(n)
+    time.sleep(.3)
+    connection.send(bytes(str(len(shrinkE[0])), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(shrinkE[0]), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(len(shrinkE[1])), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(shrinkE[1]), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(len(shrinkN[0])), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(shrinkN[0]), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(len(shrinkN[1])), 'utf-8'))
+    time.sleep(.3)
+    connection.send(bytes(str(shrinkN[1]), 'utf-8'))
 
     # recieve the server's public key
-    sizeOfUserE = client.recv(4086).decode()
-    print(sizeOfUserE)
-    userE = int(client.recv(sizeOfUserE).decode())
-    sizeOfUserN = client.recv(4086).decode()
-    logging.info("E: " + str(userE))
-    userN = int(client.recv(sizeOfUserN).decode())
-    logging.info("User information has been recieved!")
-    logging.info("User's public key is: " + str(userE))
+    sizeOfDividedNumber = int(connection.recv(1024).decode())
+    DividesysE = int(connection.recv(sizeOfDividedNumber).decode())
+    sizeOfModNumber = int(connection.recv(1024).decode())
+    modSysE = int(connection.recv(sizeOfModNumber).decode())
+    eValue = (DividesysE * maxsize) + modSysE
+    logging.info("E: " + str(eValue))
 
-    return (userN, userE)
+    sizeOfDividedNumber = int(connection.recv(1024).decode())
+    DividesysN = int(connection.recv(sizeOfDividedNumber).decode())
+    sizeOfModNumber = int(connection.recv(1024).decode())
+    modSysN = int(connection.recv(sizeOfModNumber).decode())
+    nValue = (DividesysN * maxsize) + modSysN
+    logging.info("N: " + str(nValue))
+
+    logging.info("Server information has been recieved!")
+    logging.info("Server's public key is: " + str(eValue))
+
+    return (nValue, eValue)
 
 def incomingMessages(client:socket,n:int,d:int):
     while(True):
-        data = client.recv(2048)
+        data = int(client.recv(2048).decode())
         print("Encrypted message: " + str(data))
         decryptedMessage = decryptMessage(int.from_bytes(data, byteorder='big'), n, d)
         print("Decrypted Message: " + decryptedMessage)
@@ -89,5 +124,7 @@ if __name__ == "__main__":
     d = findD(e, getPhiOfN(p, q), n)
     timeToComplete = time.time() - timeToComplete
     logging.info("time to complete d: " + str(timeToComplete))
-    
+    logging.info("e: " + str(e))
+    logging.info("n: "+ str(n))
+    logging.info("d:" +str(d))
     main(n, phiOfN, e, d)

@@ -25,7 +25,7 @@ def getPhiOfN(p, q):
 
 def generateE(p, q):
     while(True):
-        e:int = random.randint(10**(100), 10**(101))
+        e:int = random.randint(10**(3), 10**(4))
         if EuclideanAlgorithm(getPhiOfN(p, q), e) == 1:
             return e
 
@@ -43,13 +43,18 @@ def EuclideanAlgorithm(top:int, bottom:int) -> int:
     return sequence[-2]
 
 def findExponentModN(number:int, exponent:int, n:int) -> int:
-    returnNum:int = 0
-    result = bin(exponent)[2:]
-    for i in range(len(result)):
-        number = (number * number) % n
-        if result[i] == "1":
-            returnNum = (number * number) % n
-    return returnNum % n
+    returnNum:int = 1
+    result = (bin(exponent)[2:])[::-1]
+    temp = number % n
+    print(result)
+    print(len(result))
+    for i in range(0, len(result)):
+        if i != 0:
+            temp = (temp * temp) % n
+            print(temp)
+        if result[i] == '1':
+            returnNum = (returnNum * temp) % n
+    return returnNum
 
 def findD(e:int, phiOfN:int, n:int) -> int:
     return findExponentModN(e, phiOfN-1, n)
@@ -60,6 +65,7 @@ def convertNumberToString(number:int) -> str:
     if len(number) % 2 != 0:
         number = "0" + number
     for i in range(0, len(number), 2):
+        print(i)
         string += list(letterConversions.keys())[list(letterConversions.values()).index(number[i:i+2])]
     return string
 
@@ -73,7 +79,8 @@ def shrinkIntToSendOverSocket(number:int):
     return (str(math.floor(number / sys.maxsize)), str(number % sys.maxsize))
 
 def decryptMessage(message:str, privateKey:int, n:int) -> str:
-    return convertNumberToString(findExponentModN(int(message), privateKey), n)
+    return convertNumberToString(message**privateKey % n)
+    # return convertNumberToString(findExponentModN(int(message), privateKey, n))
 
 def encryptMessage(message:str, serverPublicKey:int, n:int) -> str:
     return findExponentModN(convertStringToNumber(message), serverPublicKey, n)
