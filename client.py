@@ -15,7 +15,7 @@ def main(n, phiOfN, e, d):
     host:str = ""
     with open('ip.txt', 'r') as file:
         host = file.read().rstrip()
-    port:int = 30000
+    port:int = 2049
     client = None
     try: 
         client:socket = socket.create_connection(address=(host, port))
