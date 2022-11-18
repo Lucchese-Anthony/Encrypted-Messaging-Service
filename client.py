@@ -42,25 +42,21 @@ def sendMessages(client:socket, n:int, e:int, d:int, server:tuple):
 def sendUserInformation(client:socket, n, e) -> tuple:
     logging.info("Connected to server!")
     newUser = user(n, e)
-    print(len(str(n)))
-    print(str(n) + "\n")
-    print(str(math.floor(n / sys.maxsize)) + "\n")
-    print(str(n % sys.maxsize) + "\n")
-
     # send the user object
     sizeOfE = len(str(e))
     client.send(bytes(str(sizeOfE), 'utf-8'))
-    client.send(bytes(str(e / sys.maxsize), 'utf-8'))
-    sizeOfN = len(str(n / sys.maxsize))
+    client.send(bytes(str(e), 'utf-8'))
+    sizeOfN = len(str(n))
     client.send(bytes(str(sizeOfN), 'utf-8'))
     client.send(bytes(str(n), 'utf-8'))
+
     # recieve the server's public key
-    sizeOfUserE = client.recv(4086)
-    print(sizeOfUserE.decode())
-    userE = int.from_bytes(client.recv(sizeOfUserE.decode()), byteorder='big') * sys.maxsize
-    sizeOfUserN = client.recv(4086)
-    logging.info("E: " + str(userE.decode()))
-    userN = int.from_bytes(client.recv(sizeOfUserN.decode()), byteorder='big') * sys.maxsize
+    sizeOfUserE = client.recv(4086).decode()
+    print(sizeOfUserE)
+    userE = int(client.recv(sizeOfUserE).decode())
+    sizeOfUserN = client.recv(4086).decode()
+    logging.info("E: " + str(userE))
+    userN = int(client.recv(sizeOfUserN).decode())
     logging.info("User information has been recieved!")
     logging.info("User's public key is: " + str(userE))
 

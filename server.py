@@ -50,12 +50,11 @@ def closeServer(server):
 
 def exchangeKeys(connection:socket, serverPublicKey:dict) -> user:
 
-    sizeOfUserE = int(connection.recv(4086).decode())
-    print(sizeOfUserE)
-    userE = int(connection.recv(sizeOfUserE).decode()) * sys.maxsize
-    sizeOfUserN = connection.recv(4086)
+    sizeOfUserE = int(connection.recv(4086).decode()).decode()
+    userE = int(client.recv(sizeOfUserE).decode())
+    sizeOfUserN = connection.recv(4086).decode()
     logging.info("E: " + str(userE.decode()))
-    userN = connection.recv(int(sizeOfUserN.decode())).decode() * sys.maxsize
+    userN = int(client.recv(sizeOfUserN).decode())
     logging.info("N: " + str(userN.decode()))
     logging.info("User information has been recieved!")
     logging.info("User's public key is: " + str(userE))
