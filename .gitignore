@@ -1,4 +1,3 @@
-ip.txt
-p.txt
-q.txt
+*.txt
 __pycache__
+.DS_Store

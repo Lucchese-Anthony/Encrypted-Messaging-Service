@@ -11,7 +11,7 @@ To run the program, you need to create 5 text files:
 
 the `ip.txt` file holds the ip or url of the host to bind to for the server
 
-the other files hold a prime number that will be used to encrypt the messages
+the other files hold a prime self that will be used to encrypt the messages
 
 # TODO
 
