@@ -1,5 +1,4 @@
 import json
-import math
 import random
 import logging
 import socket
@@ -35,7 +34,7 @@ def phi(a):
 
 def generate_e(p, q):
     while True:
-        e: int = random.randint(10 ** 4, 10 ** 5)
+        e: int = random.randint(10 ** 20, 10 ** 40)
         if euclidean_algorithm(get_phi_of_a_prime(p, q), e) == 1:
             return e
 
@@ -104,6 +103,7 @@ def send_keys_over_socket(connection: socket, n: int, e: int) -> tuple:
     data = json.dumps({"n": n_array, "e": e_array})
     connection.send(data.encode())
     logging.info("User information has been received!")
+
 
 def receive_message(connection: socket):
     message_array = json.loads(connection.recv(2048).decode())

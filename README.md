@@ -15,9 +15,49 @@ the other files hold a prime self that will be used to encrypt the messages
 
 # TODO
 
-- send the smaller sized integers over the socket using shrinkIntToSendOverSocket()
-- properly send messages over the socket
 - properly encode and decode
 - maybe set up wireshark and intercept packets going to and from the server so we can find the messages
 
+Documentation for Sympy totient
+```python
+class totient(Function):
+    @classmethod
+    def eval(cls, n):
+        if n.is_Integer:
+            if n < 1:
+                raise ValueError("n must be a positive integer")
+            factors = factorint(n)
+            return cls._from_factors(factors)
+        elif not isinstance(n, Expr) or (n.is_integer is False) or (n.is_positive is False):
+            raise ValueError("n must be a positive integer")
+
+    def _eval_is_integer(self):
+        return fuzzy_and([self.args[0].is_integer, self.args[0].is_positive])
+
+    @classmethod
+    def _from_distinct_primes(self, *args):
+        """Subroutine to compute totient from the list of assumed
+        distinct primes
+        Examples
+        ========
+        >>> from sympy.ntheory.factor_ import totient
+        >>> totient._from_distinct_primes(5, 7)
+        24
+        """
+        return reduce(lambda i, j: i * (j-1), args, 1)
+
+    @classmethod
+    def _from_factors(self, factors):
+        """Subroutine to compute totient from already-computed factors
+        Examples
+        ========
+        >>> from sympy.ntheory.factor_ import totient
+        >>> totient._from_factors({5: 2})
+        20
+        """
+        t = 1
+        for p, k in factors.items():
+            t *= (p - 1) * p**(k - 1)
+        return t
+    ```
 

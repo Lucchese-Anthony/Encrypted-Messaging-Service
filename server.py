@@ -1,8 +1,8 @@
 import json
+import sys
 
 from objects import user
 import threading
-import socket
 import os
 from equations import *
 
@@ -24,23 +24,23 @@ def main(n, e, d):
     server.listen(1)
     connection, address = server.accept()
     logging.info("Connection from: " + str(address))
-    connectedUser = exchangeKeys(connection, public_key)
+    connected_user = exchangeKeys(connection, public_key) #n, e
     time.sleep(5)
-    incomingMessagesThread = threading.Thread(target=incoming_messages, args=(connectedUser, connection, public_key, d))
-    closeProgramThread = threading.Thread(target=closeServer, args=(public_key,))
+    incoming_messages_thread = threading.Thread(target=incoming_messages, args=(connected_user, connection, public_key, d))
+    close_program_thread = threading.Thread(target=closeServer, args=(public_key,))
 
-    incomingMessagesThread.start()
-    closeProgramThread.start()
+    incoming_messages_thread.start()
+    close_program_thread.start()
     while True:
-        if not closeProgramThread.isAlive():
+        if not close_program_thread.isAlive():
             os._exit(os.EX_OK)
 
 
 def closeServer(server):
-    endProgram = ''
+    end_program = ''
 
-    while endProgram != "e":
-        endProgram = input("")
+    while end_program != "e":
+        end_program = input("")
     print('closing server')
     server.close()
     print('ending program')
@@ -56,10 +56,7 @@ def incoming_messages(connected_user, connection: socket, server: tuple, private
     while True:
         size_of_message = connection.recv(2048).decode()
         if size_of_message != "":
-            DivMessage = int(connection.recv(int(size_of_message)).decode())
-            modMessageSize = connection.recv(2048).decode()
-            modMessage = int(connection.recv(int(modMessageSize)).decode())
-            message = (DivMessage * maxsize) + modMessage
+            message = receive_message(connection)
             logging.info("Message has been received!")
             print("Encrypted message: " + str(message))
             print("Decrypted message: " + decrypt_message(message, private_key, server["n"]))
