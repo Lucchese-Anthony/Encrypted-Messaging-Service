@@ -1,24 +1,28 @@
 # Encrypted Messaging Service
-
+## Description
 This program is a python-based socket connection messaging service utilizing RSA encryption for end-to-end encryption of messages between a server and a client
 
 To run the program, you need to create 5 text files:
-- ip.txt
-- pCLient.txt
-- qClient.txt
-- pServer.txt
-- qServer.txt
+- `ip.txt`
+- `pClient.txt`
+- `qClient.txt`
+- `pServer.txt`
+- `qServer.txt`
 
 the `ip.txt` file holds the ip or url of the host to bind to for the server
 
 the other files hold a prime self that will be used to encrypt the messages
 
-# TODO
+## How to Run
 
-- properly encode and decode
-- maybe set up wireshark and intercept packets going to and from the server so we can find the messages
+- Must have `python 3.8=<`
+- Must install `sympy` using `pip install sympy` 
+- Might need to install sockets locally on your machine using `sudo apt-get install socket`
 
-Documentation for Sympy totient
+To run, make sure that the ip you would like to connect to is correct, and run the files on separate machines (or the same machine thats fine) and you should be good to go
+
+
+Documentation for Sympy totient which is found at [the sympy GitHub repository](https://github.com/sympy/sympy)
 ```python
 class totient(Function):
     @classmethod
@@ -59,5 +63,5 @@ class totient(Function):
         for p, k in factors.items():
             t *= (p - 1) * p**(k - 1)
         return t
-    ```
+```
 
