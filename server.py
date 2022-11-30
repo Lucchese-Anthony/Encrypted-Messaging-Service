@@ -48,8 +48,8 @@ def closeServer(server):
 
 
 def exchangeKeys(connection: socket, server_public_key: dict) -> user:
-    send_keys_over_socket(connection)
-    return receive_keys_over_socket(connection, server_public_key["e"], server_public_key['n'])
+    send_keys_over_socket(connection,  server_public_key["e"], server_public_key['n'])
+    return receive_keys_over_socket(connection)
 
 
 def incoming_messages(connected_user, connection: socket, server: tuple, private_key: int):

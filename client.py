@@ -41,7 +41,7 @@ def sendMessages(client: socket, server: tuple):
 
 
 def sendUserInformation(connection: socket, n: int, e: int) -> tuple:
-    keys = receive_keys_over_socket(connection, n, e)
+    keys = receive_keys_over_socket(connection)
     send_keys_over_socket(connection, n, e)
     return keys
 
