@@ -6,9 +6,9 @@ import random
 #python3 -m unittest -v test.Testing
 
 
-p = 953
-q = 359
-n = 342127
+p = 4669523849932130508876392554713407521319117239637943224980015676156491
+q = 4906275427767802358357703730938087362176142642699093827933107888253709
+n = p*q
 phi_of_n = 340816
 e = 49213
 d = 2133
@@ -34,6 +34,7 @@ class Testing(unittest.TestCase):
 
     def test_find_exponent_modulo_n(self):
         test = find_exponent_modulo_n(p, q, n)
+        print(test)
         self.assertEqual(953, test)
 
     def test_find_d(self):

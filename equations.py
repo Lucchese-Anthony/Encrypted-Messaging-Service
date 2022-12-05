@@ -58,7 +58,6 @@ def find_exponent_modulo_n(number: int, exponent: int, n: int) -> int:
     result = (bin(exponent)[2:])[::-1]
     temp = number % n
     for i in range(0, len(result)):
-
         if i != 0:
             temp = (temp * temp) % n
         if result[i] == '1':
@@ -71,18 +70,13 @@ def find_d(e: int, phi_of_n: int) -> int:
 
 
 def encrypt_message(message: str, public_key: int, n: int) -> int:
+    logging.info("message in encrypt: " + str(message))
     return find_exponent_modulo_n(convertStringToNumber(message), public_key, n)
 
 
 def decrypt_message(message: str, private_key: int, n: int) -> str:
     decrypted_message = find_exponent_modulo_n(int(message), private_key, n)
     return convertNumberToString(decrypted_message)
-
-
-def separate_number_into_n_chunks(number: int, num_of_chunks: int) -> list:
-    chunks = textwrap.wrap(str(number), num_of_chunks)
-    for i in range(len(chunks)): chunks[i] = int(chunks[i])
-    return chunks
 
 
 def convert_to_array(num: int) -> list:
@@ -93,17 +87,10 @@ def convert_to_array(num: int) -> list:
 
 def convert_to_int(num_list: list) -> int:
     # might be an issue with the length of the numbers
-    return int("".join(num_list))
-
-
-def send_keys_over_socket(connection: socket, n: int, e: int) -> tuple:
-    # send the server object
-    n_array = convert_to_array(n)
-    e_array = convert_to_array(e)
-    data = json.dumps({"n": n_array, "e": e_array})
-    connection.send(data.encode())
-    logging.info("User information has been received!")
-
+    num = 0
+    for i in range(len(num_list)):
+        num += num_list[i] * (10**((len(num_list) - 1) - i))
+    return num
 
 def receive_message(connection: socket):
     message_array = json.loads(connection.recv(2048).decode())
@@ -115,6 +102,13 @@ def send_message(connection: socket, message: int):
     data = json.dumps({"m": message_array})
     connection.send(data.encode())
 
+def send_keys_over_socket(connection: socket, n: int, e: int) -> tuple:
+    # send the server object
+    n_array = convert_to_array(n)
+    e_array = convert_to_array(e)
+    data = json.dumps({"n": n_array, "e": e_array})
+    connection.send(data.encode())
+    logging.info("User information has been sent!")
 
 def receive_keys_over_socket(connection: socket):
     incoming_data = json.loads(connection.recv(2048).decode())
@@ -137,21 +131,10 @@ def generate_keys(p: int, q: int):
     d = find_d(e, get_phi_of_a_prime(p, q))
     time_to_complete = time.time() - time_to_complete
     logging.info("time to complete d: " + str(time_to_complete))
-    logging.info("e: " + str(e))
-    logging.info("n: " + str(n))
-    logging.info("d: " + str(d))
+    logging.info("e value: " + str(e))
+    logging.info("n value: " + str(n))
+    logging.info("d value: " + str(d))
     return n, phi, e, d
-
-
-def combineNumbersIntoOneNumber(number: list) -> int:
-    result = 0
-    result = (int(number[9])) * (10 ** 100) + (int(number[8])) * (10 ** 90) + (int(number[7])) * (10 ** 80) + (
-        int(number[7])) * (10 ** 70) + (int(number[6])) * (10 ** 60) + (int(number[5])) * (10 ** 50) + (
-                 int(number[4])) * (10 ** 40) + (int(number[3])) * (10 ** 30) + (int(number[2])) * (10 ** 20) + (
-                 int(number[1])) * (10 ** 10) + (int(number[0])) * (10 ** 0)
-    print(result)
-    return int(result)
-
 
 def convertNumberToString(number: int) -> str:
     string = ""
@@ -168,4 +151,5 @@ def convertStringToNumber(string: str) -> int:
     string = string.upper()
     for i in range(len(string)):
         number += letterConversions[string[i]]
+    logging.info("Message converted to numbers: " + str(number))
     return int(number)
