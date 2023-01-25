@@ -99,7 +99,7 @@ def receive_message(connection: socket):
 
 def send_message(connection: socket, message: int):
     message_array = convert_to_array(message)
-    data = json.dumps({"m": message_array})
+    data = json.dumps({"l": len(message_array),"m": message_array})
     connection.send(data.encode())
 
 def send_keys_over_socket(connection: socket, n: int, e: int) -> tuple:
@@ -110,6 +110,7 @@ def send_keys_over_socket(connection: socket, n: int, e: int) -> tuple:
     connection.send(data.encode())
     logging.info("User information has been sent!")
 
+
 def receive_keys_over_socket(connection: socket):
     incoming_data = json.loads(connection.recv(2048).decode())
     user_n = convert_to_int(incoming_data.get('n'))
@@ -118,6 +119,7 @@ def receive_keys_over_socket(connection: socket):
     logging.info("User's public key is: " + str(user_e))
     logging.info("User's n value is " + str(user_n))
     return user_n, user_e
+
 
 def generate_keys(p: int, q: int):
     phi = get_phi_of_a_prime(p, q)
@@ -135,6 +137,7 @@ def generate_keys(p: int, q: int):
     logging.info("n value: " + str(n))
     logging.info("d value: " + str(d))
     return n, phi, e, d
+
 
 def convertNumberToString(number: int) -> str:
     string = ""
